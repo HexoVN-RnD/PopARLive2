@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class OnClickCustomEvent : MonoBehaviour
 {
@@ -21,6 +22,7 @@ public class OnClickCustomEvent : MonoBehaviour
     {
         Debug.Log("Info button clicked");
         infoPanel.SetActive(true);
+        StartCoroutine(HandleBackButton());
     }
 
     public void ImageOnClick()
@@ -33,5 +35,18 @@ public class OnClickCustomEvent : MonoBehaviour
     {
         Debug.Log("Info panel back button clicked");
         infoPanel.SetActive(false);
+    }
+
+    IEnumerator HandleBackButton()
+    {
+        while (infoPanel.activeSelf)
+        {
+            if (Input.GetKey(KeyCode.Escape))
+            {
+                InfoPanelBackButtonOnClick();
+                yield break; // Stop the coroutine
+            }
+            yield return null; // Wait for the next frame
+        }
     }
 }
