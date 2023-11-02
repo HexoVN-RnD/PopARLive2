@@ -40,7 +40,6 @@ public class CMSProjectImageImport : MonoBehaviour
 
     void Start()
     {
-        Application.targetFrameRate = 120;
         Debug.Log("Starting CSM Project Image Import Script...");
         StartCoroutine(GetDataFromAPI(apiLink));
     }

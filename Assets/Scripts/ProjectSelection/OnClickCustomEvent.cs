@@ -27,8 +27,9 @@ public class OnClickCustomEvent : MonoBehaviour
 
     public void ImageOnClick()
     {
-        Debug.Log("Image button clicked. Loading scene: " + imageTitle.text);
-        SceneManager.LoadScene(imageTitle.text);
+        Debug.Log("Image button clicked. Loading project: " + imageTitle.text);
+        PlayerPrefs.SetInt("ProjectID", PlayerPrefs.GetInt(imageTitle.text, 0));
+        SceneManager.LoadScene("GeneralARProject");
     }
 
     public void InfoPanelBackButtonOnClick()

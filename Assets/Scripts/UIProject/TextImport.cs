@@ -45,7 +45,7 @@ public class TextImport : MonoBehaviour
                     int size = N["data"][i]["items"][0]["size"].AsInt;
                     string style = N["data"][i]["items"][0]["style"];
 
-                    Debug.Log(message_text);
+                    //Debug.Log(message_text);
 
                     textMeshPro.text = message_text;
 

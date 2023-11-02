@@ -5,12 +5,15 @@ using System.Collections.Generic;
 
 public class enablePopUp : MonoBehaviour
 {
-    public Button yourButton; // Assign in inspector
-    public List<GameObject> togglePopups; // Assign in inspector
+    public List<Button> viewPopupButtons;
+    public List<GameObject> togglePopups;
 
     void Start()
     {
-        yourButton.onClick.AddListener(ToggleVisibility);
+        foreach (Button button in viewPopupButtons)
+        {
+            button.onClick.AddListener(ToggleVisibility);
+        }
     }
 
     void ToggleVisibility()

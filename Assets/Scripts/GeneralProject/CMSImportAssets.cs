@@ -6,16 +6,81 @@ using UnityEngine.Networking;
 using SimpleJSON;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using System;
 
-public class ImportFromCMS : MonoBehaviour
+public class CMSImportAssets : MonoBehaviour
 {
-    public int projectID;
-    public JohnBui.PlaceObjectsCMS placeARObject;
-    public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
+    // Define the delegate and event for data download start
+    public delegate void DataDownloadStartHandler();
+    public static event DataDownloadStartHandler OnDataDownloadStart;
+
+    // Define the delegate and event for data download end
+    public delegate void DataDownloadEndHandler();
+    public static event DataDownloadEndHandler OnDataDownloadEnd;
+
+    [SerializeField]
+    private PlaceAssets placeARObject;
+    [SerializeField]
     private bool redownloadAssets = true;
-    // Start is called before the first frame update
+    public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
+
+    [Serializable]
+    public class ProjectData
+    {
+        public int id;
+        public string title;
+        public string desc;
+        public string visibility;
+        public string image;
+        public string hash_tag;
+        public Schedule schedule;
+        public Experience[] experiences;
+    }
+
+    [Serializable]
+    public class Schedule
+    {
+        public int id;
+        public string startDate;
+        public string endDate;
+        public string time_zone;
+        public Item[] items; // Define the Item class based on your actual data
+    }
+
+    [Serializable]
+    public class Experience
+    {
+        public int id;
+        public string name;
+        public string ar_content_type;
+        public string apple_image;
+        public string ch_play_image;
+        public string name_file_apple_image;
+        public string name_file_ch_play_image;
+        public string ar_image;
+        public float? x_tracking;
+        public float? y_tracking;
+        public float fade_in;
+        public float fade_out;
+        public float opacity;
+        public float scale;
+        public float rotation_offset;
+        public string light_color;
+        public string light_brightness;
+        public bool? main;
+        public float gps;
+        public Schedule schedule;
+    }
+
+    [Serializable]
+    public class Item
+    {
+    }
+
     IEnumerator Start()
     {
+        // Get the project ID from the player prefs
+        int projectID = PlayerPrefs.GetInt("ProjectID", 0);
         string apiURL = "https://popar-backend.acstech.vn/api/v3/project/" + projectID;
         Debug.Log("API URL: " + apiURL);
         UnityWebRequest www = UnityWebRequest.Get(apiURL);
@@ -27,21 +92,24 @@ public class ImportFromCMS : MonoBehaviour
         else
         {
             Debug.Log("Successfully received API response");
-            var jsonResponse = JSON.Parse(www.downloadHandler.text);
-            var data = jsonResponse["data"];
+            OnDataDownloadStart?.Invoke();
+            // Parse the JSON response into a ProjectData object
+            ProjectData projectData = JsonUtility.FromJson<ProjectData>(www.downloadHandler.text);
+            // Save the data
+            SaveData(projectData, projectID);
             int counter = 1;
-            foreach (JSONNode item in data["experiences"].AsArray)
+            foreach (Experience experience in projectData.experiences)
             {
                 string bundleLink;
-                string markerLink = item["ar_image"];
+                string markerLink = experience.ar_image;
 
                 // Get the filename of the bundle image for the current platform
-                string filename = item["name_file_apple_image"];
+                string filename = experience.name_file_apple_image;
                 if (Application.platform == RuntimePlatform.Android)
                 {
-                    filename = item["name_file_ch_play_image"];
+                    filename = experience.name_file_ch_play_image;
                 }
-                //string imagename = ((string)item["ar_image"]).Split('=')[1].Split('?')[0];
+                //string imagename = ((string)experience["ar_image"]).Split('=')[1].Split('?')[0];
 
                 // Construct the bundle link
                 bundleLink = "http://popar-backend.acstech.vn/filename=" + filename + "?bucket=projects";
@@ -50,24 +118,39 @@ public class ImportFromCMS : MonoBehaviour
                 Debug.Log("Marker link: " + markerLink);
 
                 // Now you can use these links to download and import your asset bundles
-                StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, counter.ToString()));
-                StartCoroutine(DownloadAndCacheImage(markerLink, counter.ToString() + ".png"));
+                StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, counter.ToString(), projectID));
+                StartCoroutine(DownloadAndCacheImage(markerLink, counter.ToString() + ".png", projectID));
 
                 // StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, filename));
                 // StartCoroutine(DownloadAndCacheImage(markerLink, imagename));
 
                 counter++;
             }
+            OnDataDownloadEnd?.Invoke();
         }
     }
 
+    public void SaveData(ProjectData projectData, int projectID)
+    {
+        // Convert the ProjectData object to a JSON string
+        string jsonData = JsonUtility.ToJson(projectData);
 
-    IEnumerator DownloadAndCacheAssetBundle(string url, string fileName)
+        // Save the JSON string to a file
+        string tempPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
+        string tempPath2 = Path.Combine(tempPath1, projectID.ToString());
+        string fullPath = Path.Combine(tempPath2, "Data.json");
+        File.WriteAllText(fullPath, jsonData);
+    }
+
+    IEnumerator DownloadAndCacheAssetBundle(string url, string fileName, int projectID)
     {
         // Replace 'http' with 'https' in the URL
         url = url.Replace("http://", "https://");
 
-        string localPath = Path.Combine(Application.persistentDataPath, fileName);
+        string folderPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
+        string folderPath2 = Path.Combine(folderPath1, projectID.ToString());
+        string localPath = Path.Combine(folderPath2, fileName);
+        Directory.CreateDirectory(folderPath2);
 
         if (File.Exists(localPath) && !redownloadAssets)
         {
@@ -107,12 +190,15 @@ public class ImportFromCMS : MonoBehaviour
         }
     }
 
-    IEnumerator DownloadAndCacheImage(string url, string fileName)
+    IEnumerator DownloadAndCacheImage(string url, string fileName, int projectID)
     {
         // Replace 'http' with 'https' in the URL
         url = url.Replace("http://", "https://");
 
-        string localPath = Path.Combine(Application.persistentDataPath, fileName);
+        string folderPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
+        string folderPath2 = Path.Combine(folderPath1, projectID.ToString());
+        string localPath = Path.Combine(folderPath2, fileName);
+        Directory.CreateDirectory(folderPath2);
 
         if (File.Exists(localPath) && !redownloadAssets)
         {
@@ -146,8 +232,6 @@ public class ImportFromCMS : MonoBehaviour
         }
     }
 
-
-
     void AddAssetsToPlaceARObject(AssetBundle bundle, string fileName)
     {
         // Use GetAllAssetNames()
@@ -176,9 +260,7 @@ public class ImportFromCMS : MonoBehaviour
         var mutableLibrary = imageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
 
         // Add the image to the library
-
         mutableLibrary.ScheduleAddImageJob(image, name, 0.1f);
-
 
         // Log the contents of the reference image library
         Debug.Log("Reference Image Library:");

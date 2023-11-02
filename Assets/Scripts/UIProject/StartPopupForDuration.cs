@@ -2,9 +2,12 @@ using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
 
-public class startPopup : MonoBehaviour
+public class StartPopupForDuration : MonoBehaviour
 {
-    public List<GameObject> objectsToActivate;
+    [SerializeField] 
+    private List<GameObject> objectsToActivate;
+    [SerializeField]
+    private float duration = 5f;
 
     void Start()
     {
@@ -15,7 +18,7 @@ public class startPopup : MonoBehaviour
             objectToActivate.SetActive(true);
             canvasGroup.DOFade(1f, 0.5f).SetDelay(1f).OnComplete(() =>
             {
-                canvasGroup.DOFade(0f, 0.5f).SetDelay(6f).OnComplete(() =>
+                canvasGroup.DOFade(0f, 0.5f).SetDelay(duration).OnComplete(() =>
                 {
                     objectToActivate.SetActive(false);
                 });
