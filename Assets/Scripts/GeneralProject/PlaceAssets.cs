@@ -61,11 +61,15 @@ public class PlaceAssets : MonoBehaviour
             {
                 Debug.Log("Instantiating prefab for key: " + key);
                 GameObject prefab = CMSImportAssets.prefabDictionary[key];
+                if (prefab == null)
+                {
+                    Debug.LogError("Prefab for key: " + key + " is null");
+                    continue;
+                }
                 GameObject instance = Instantiate(prefab, trackedImage.transform.position, trackedImage.transform.rotation);
                 instance.transform.parent = trackedImage.transform;
 
-                // Start the FadeIn Coroutine
-                StartCoroutine(FadeIn(instance));
+                StartCoroutine(ScaleUp(instance));
 
                 _instantiatedPrefabs.Add(key, instance);
             }
@@ -94,105 +98,125 @@ public class PlaceAssets : MonoBehaviour
         // }
     }
 
-    IEnumerator FadeIn(GameObject instance)
+    IEnumerator ScaleUp(GameObject instance)
     {
-        if (instance == null)
-        {
-            Debug.LogError("Instance is null");
-            yield break;
-        }
+    // Wait for 1 second
+    yield return new WaitForSeconds(1);
 
-        // Get all renderers in the instance and its children
-        Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
+    // Set scale to normal over x seconds
+    float duration = 1.0f; // duration of the scaling process
+    float elapsedTime = 0;
 
-        foreach (Renderer renderer in renderers)
-        {
-            if (renderer == null)
-            {
-                Debug.LogError("Renderer is null");
-                continue;
-            }
-
-            // Get all materials of the current renderer
-            Material[] materials = renderer.materials;
-
-            foreach (Material material in materials)
-            {
-                if (material == null)
-                {
-                    Debug.LogError("Material is null");
-                    continue;
-                }
-
-                // Set the initial alpha to 0
-                Color color = material.color;
-                color.a = 0;
-                material.color = color;
-
-                // Gradually increase the alpha to 1 over x seconds
-                float duration = 5.0f; // Duration in seconds
-                for (float t = 0; t < duration; t += Time.deltaTime)
-                {
-                    color.a = Mathf.Lerp(0, 1, t / duration);
-                    material.color = color;
-                    yield return null;
-                }
-
-                // Ensure the alpha is set to 1
-                color.a = 1;
-                material.color = color;
-            }
-        }
+    while (elapsedTime < duration)
+    {
+        instance.transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, (elapsedTime / duration));
+        elapsedTime += Time.deltaTime;
+        yield return null;
     }
 
-    IEnumerator FadeOut(GameObject instance)
-    {
-        if (instance == null)
-        {
-            Debug.LogError("Instance is null");
-            yield break;
-        }
-
-        // Get all renderers in the instance and its children
-        Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
-
-        foreach (Renderer renderer in renderers)
-        {
-            if (renderer == null)
-            {
-                Debug.LogError("Renderer is null");
-                continue;
-            }
-
-            // Get all materials of the current renderer
-            Material[] materials = renderer.materials;
-
-            foreach (Material material in materials)
-            {
-                if (material == null)
-                {
-                    Debug.LogError("Material is null");
-                    continue;
-                }
-
-                // Set the initial alpha to 1
-                Color color = material.color;
-                color.a = 1;
-                material.color = color;
-
-                // Gradually decrease the alpha to 0 over x seconds
-                float duration = 3.0f; // Duration in seconds
-                for (float t = 0; t < duration; t += Time.deltaTime)
-                {
-                    color.a = Mathf.Lerp(1, 0, t / duration);
-                    material.color = color;
-                    yield return null;
-                }
-
-                // Ensure the alpha is set to 0
-                color.a = 0;
-                material.color = color;
-            }
-        }
+    // Ensure the final scale is exactly 1
+    instance.transform.localScale = Vector3.one;
     }
+
+    // IEnumerator FadeIn(GameObject instance)
+    // {
+    //     if (instance == null)
+    //     {
+    //         Debug.LogError("Instance is null");
+    //         yield break;
+    //     }
+
+    //     // Get all renderers in the instance and its children
+    //     Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
+
+    //     foreach (Renderer renderer in renderers)
+    //     {
+    //         if (renderer == null)
+    //         {
+    //             Debug.LogError("Renderer is null");
+    //             continue;
+    //         }
+
+    //         // Get all materials of the current renderer
+    //         Material[] materials = renderer.materials;
+
+    //         foreach (Material material in materials)
+    //         {
+    //             if (material == null)
+    //             {
+    //                 Debug.LogError("Material is null");
+    //                 continue;
+    //             }
+
+    //             // Set the initial alpha to 0
+    //             Color color = material.color;
+    //             color.a = 0;
+    //             material.color = color;
+
+    //             // Gradually increase the alpha to 1 over x seconds
+    //             float duration = 5.0f; // Duration in seconds
+    //             for (float t = 0; t < duration; t += Time.deltaTime)
+    //             {
+    //                 color.a = Mathf.Lerp(0, 1, t / duration);
+    //                 material.color = color;
+    //                 yield return null;
+    //             }
+
+    //             // Ensure the alpha is set to 1
+    //             color.a = 1;
+    //             material.color = color;
+    //         }
+    //     }
+    // }
+
+    // IEnumerator FadeOut(GameObject instance)
+    // {
+    //     if (instance == null)
+    //     {
+    //         Debug.LogError("Instance is null");
+    //         yield break;
+    //     }
+
+    //     // Get all renderers in the instance and its children
+    //     Renderer[] renderers = instance.GetComponentsInChildren<Renderer>();
+
+    //     foreach (Renderer renderer in renderers)
+    //     {
+    //         if (renderer == null)
+    //         {
+    //             Debug.LogError("Renderer is null");
+    //             continue;
+    //         }
+
+    //         // Get all materials of the current renderer
+    //         Material[] materials = renderer.materials;
+
+    //         foreach (Material material in materials)
+    //         {
+    //             if (material == null)
+    //             {
+    //                 Debug.LogError("Material is null");
+    //                 continue;
+    //             }
+
+    //             // Set the initial alpha to 1
+    //             Color color = material.color;
+    //             color.a = 1;
+    //             material.color = color;
+
+    //             // Gradually decrease the alpha to 0 over x seconds
+    //             float duration = 3.0f; // Duration in seconds
+    //             for (float t = 0; t < duration; t += Time.deltaTime)
+    //             {
+    //                 color.a = Mathf.Lerp(1, 0, t / duration);
+    //                 material.color = color;
+    //                 yield return null;
+    //             }
+
+    //             // Ensure the alpha is set to 0
+    //             color.a = 0;
+    //             material.color = color;
+    //         }
+    //     }
+    // }
 }

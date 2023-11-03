@@ -25,6 +25,14 @@ public class CMSImportAssets : MonoBehaviour
     public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
 
     [Serializable]
+    public class ResponseData
+    {
+        public bool status;
+        public string message;
+        public ProjectData data;
+    }
+
+    [Serializable]
     public class ProjectData
     {
         public int id;
@@ -58,8 +66,8 @@ public class CMSImportAssets : MonoBehaviour
         public string name_file_apple_image;
         public string name_file_ch_play_image;
         public string ar_image;
-        public float? x_tracking;
-        public float? y_tracking;
+        public float x_tracking;
+        public float y_tracking;
         public float fade_in;
         public float fade_out;
         public float opacity;
@@ -80,25 +88,26 @@ public class CMSImportAssets : MonoBehaviour
     IEnumerator Start()
     {
         // Get the project ID from the player prefs
-        int projectID = PlayerPrefs.GetInt("ProjectID", 0);
+        //int projectID = PlayerPrefs.GetInt("ProjectID", 0);
+        int projectID = 2;
         string apiURL = "https://popar-backend.acstech.vn/api/v3/project/" + projectID;
         Debug.Log("API URL: " + apiURL);
-        UnityWebRequest www = UnityWebRequest.Get(apiURL);
-        yield return www.SendWebRequest();
-        if (www.result != UnityWebRequest.Result.Success)
+        UnityWebRequest request = UnityWebRequest.Get(apiURL);
+        yield return request.SendWebRequest();
+        if (request.result != UnityWebRequest.Result.Success)
         {
-            Debug.Log("API request failed: " + www.error);
+            Debug.Log("API request failed: " + request.error);
         }
         else
         {
             Debug.Log("Successfully received API response");
             OnDataDownloadStart?.Invoke();
             // Parse the JSON response into a ProjectData object
-            ProjectData projectData = JsonUtility.FromJson<ProjectData>(www.downloadHandler.text);
+            ResponseData responseData = JsonUtility.FromJson<ResponseData>(request.downloadHandler.text);
             // Save the data
-            SaveData(projectData, projectID);
+            SaveData(responseData.data, projectID);
             int counter = 1;
-            foreach (Experience experience in projectData.experiences)
+            foreach (Experience experience in responseData.data.experiences)
             {
                 string bundleLink;
                 string markerLink = experience.ar_image;
@@ -119,7 +128,7 @@ public class CMSImportAssets : MonoBehaviour
 
                 // Now you can use these links to download and import your asset bundles
                 StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, counter.ToString(), projectID));
-                StartCoroutine(DownloadAndCacheImage(markerLink, counter.ToString() + ".png", projectID));
+                StartCoroutine(DownloadAndCacheImage(markerLink, counter.ToString() + ".png", projectID, experience.x_tracking));
 
                 // StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, filename));
                 // StartCoroutine(DownloadAndCacheImage(markerLink, imagename));
@@ -138,6 +147,7 @@ public class CMSImportAssets : MonoBehaviour
         // Save the JSON string to a file
         string tempPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
         string tempPath2 = Path.Combine(tempPath1, projectID.ToString());
+        Directory.CreateDirectory(tempPath2);
         string fullPath = Path.Combine(tempPath2, "Data.json");
         File.WriteAllText(fullPath, jsonData);
     }
@@ -190,7 +200,7 @@ public class CMSImportAssets : MonoBehaviour
         }
     }
 
-    IEnumerator DownloadAndCacheImage(string url, string fileName, int projectID)
+    IEnumerator DownloadAndCacheImage(string url, string fileName, int projectID, float x_tracking)
     {
         // Replace 'http' with 'https' in the URL
         url = url.Replace("http://", "https://");
@@ -209,7 +219,7 @@ public class CMSImportAssets : MonoBehaviour
             Texture2D texture = new Texture2D(2, 2); // Create a new texture
             texture.LoadImage(imageData); // Load the image data into the texture
             Debug.Log("Loading image: " + fileName);
-            AddImageToReferenceLibrary(texture, fileName); // Add the image to the reference library
+            AddImageToReferenceLibrary(texture, fileName, x_tracking); // Add the image to the reference library
         }
         else
         {
@@ -227,13 +237,14 @@ public class CMSImportAssets : MonoBehaviour
                 File.WriteAllBytes(localPath, request.downloadHandler.data);
 
                 Texture2D texture = DownloadHandlerTexture.GetContent(request);
-                AddImageToReferenceLibrary(texture, fileName);
+                AddImageToReferenceLibrary(texture, fileName, x_tracking);
             }
         }
     }
 
     void AddAssetsToPlaceARObject(AssetBundle bundle, string fileName)
     {
+#if !UNITY_EDITOR
         // Use GetAllAssetNames()
         string[] assetNames = bundle.GetAllAssetNames();
         foreach (string name in assetNames)
@@ -250,9 +261,10 @@ public class CMSImportAssets : MonoBehaviour
         {
             Debug.Log("Prefabs: " + key);
         }
+#endif
     }
 
-    void AddImageToReferenceLibrary(Texture2D image, string name)
+    void AddImageToReferenceLibrary(Texture2D image, string name, float x_tracking)
     {
 #if !UNITY_EDITOR
         // Get the reference image library
@@ -260,7 +272,7 @@ public class CMSImportAssets : MonoBehaviour
         var mutableLibrary = imageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
 
         // Add the image to the library
-        mutableLibrary.ScheduleAddImageJob(image, name, 0.1f);
+        mutableLibrary.ScheduleAddImageWithValidationJob(image, name, x_tracking, default);
 
         // Log the contents of the reference image library
         Debug.Log("Reference Image Library:");
