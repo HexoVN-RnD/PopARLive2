@@ -68,6 +68,8 @@ public class PlaceAssets : MonoBehaviour
                 }
                 GameObject instance = Instantiate(prefab, trackedImage.transform.position, trackedImage.transform.rotation);
                 instance.transform.parent = trackedImage.transform;
+                instance.SetActive(true);
+                Debug.Log("Scaling up: " + key);
 
                 StartCoroutine(ScaleUp(instance));
 
