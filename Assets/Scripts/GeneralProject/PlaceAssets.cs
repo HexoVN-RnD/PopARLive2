@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 using UnityEngine.Playables;
+using static CMSImportAssets;
 
 public class PlaceAssets : MonoBehaviour
 {
@@ -44,14 +45,11 @@ public class PlaceAssets : MonoBehaviour
         {
             Debug.Log("Adding image to library: " + texture.name);
             var jobHandle = mutableLibrary.ScheduleAddImageWithValidationJob(texture, texture.name, 0.1f, default);
-            yield return jobHandle;  // Wait for the job to complete
+            yield return jobHandle;
         }
-
-        // Attach event handler when tracked images change
         m_TrackedImageManager.trackedImagesChanged += OnTrackedImagesChanged;
     }
 
-    // Event Handler
     private void OnTrackedImagesChanged(ARTrackedImagesChangedEventArgs eventArgs)
     {
         foreach (var trackedImage in eventArgs.added)
@@ -66,12 +64,13 @@ public class PlaceAssets : MonoBehaviour
                     Debug.LogError("Prefab for key: " + key + " is null");
                     continue;
                 }
-                GameObject instance = Instantiate(prefab, trackedImage.transform.position, trackedImage.transform.rotation);
+                //GameObject instance = Instantiate(prefab, trackedImage.transform.position, Quaternion.identity);
+                GameObject instance = Instantiate(prefab, trackedImage.transform.position, prefab.transform.rotation);
                 instance.transform.parent = trackedImage.transform;
                 instance.SetActive(true);
                 Debug.Log("Scaling up: " + key);
 
-                StartCoroutine(ScaleUp(instance));
+                StartCoroutine(ScaleUp(instance, key));
 
                 _instantiatedPrefabs.Add(key, instance);
             }
@@ -100,25 +99,29 @@ public class PlaceAssets : MonoBehaviour
         // }
     }
 
-    IEnumerator ScaleUp(GameObject instance)
+    IEnumerator ScaleUp(GameObject instance, string key)
     {
-    // Wait for 1 second
-    yield return new WaitForSeconds(1);
+        yield return new WaitForSeconds(1);
+        // Get the corresponding Experience object
+        Debug.Log(instance.name + " key " + key);
+        Experience experience = CMSImportAssets.experienceDictionary.ContainsKey(key) ? CMSImportAssets.experienceDictionary[key] : null;
+        // Use the fade_in value as the duration
+        float duration = experience != null ? experience.fade_in : 3.0f;
+        // Use the scale value as the maximum scale
+        Vector3 maxScale = experience != null ? new Vector3(experience.scale/100, experience.scale/100, experience.scale/100) : Vector3.one;
+        Debug.Log("Scaling up for " + duration + " seconds" + " to " + maxScale);
+        float elapsedTime = 0;
 
-    // Set scale to normal over x seconds
-    float duration = 1.0f; // duration of the scaling process
-    float elapsedTime = 0;
-
-    while (elapsedTime < duration)
-    {
-        instance.transform.localScale = Vector3.Lerp(Vector3.zero, Vector3.one, (elapsedTime / duration));
-        elapsedTime += Time.deltaTime;
-        yield return null;
+        while (elapsedTime < duration)
+        {
+            instance.transform.localScale = Vector3.Lerp(Vector3.zero, maxScale, (elapsedTime / duration));
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+        instance.transform.localScale = maxScale;
     }
 
-    // Ensure the final scale is exactly 1
-    instance.transform.localScale = Vector3.one;
-    }
+
 
     // IEnumerator FadeIn(GameObject instance)
     // {

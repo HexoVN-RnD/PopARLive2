@@ -10,11 +10,9 @@ using System;
 
 public class CMSImportAssets : MonoBehaviour
 {
-    // Define the delegate and event for data download start
     public delegate void DataDownloadStartHandler();
     public static event DataDownloadStartHandler OnDataDownloadStart;
 
-    // Define the delegate and event for data download end
     public delegate void DataDownloadEndHandler();
     public static event DataDownloadEndHandler OnDataDownloadEnd;
 
@@ -23,6 +21,7 @@ public class CMSImportAssets : MonoBehaviour
     [SerializeField]
     private bool redownloadAssets = true;
     public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
+    public static Dictionary<string, Experience> experienceDictionary = new Dictionary<string, Experience>();
 
     [Serializable]
     public class ResponseData
@@ -52,7 +51,7 @@ public class CMSImportAssets : MonoBehaviour
         public string startDate;
         public string endDate;
         public string time_zone;
-        public Item[] items; // Define the Item class based on your actual data
+        public Item[] items;
     }
 
     [Serializable]
@@ -86,10 +85,17 @@ public class CMSImportAssets : MonoBehaviour
     }
 
     IEnumerator Start()
-    {
+    {   //Delete old data
+        string oldDataPath = Path.Combine(Application.persistentDataPath, "ProjectAssets");
+        if (Directory.Exists(oldDataPath))
+        {
+            Directory.Delete(oldDataPath, true);
+        }
+        CMSImportAssets.experienceDictionary.Clear();
+        CMSImportAssets.prefabDictionary.Clear();
+        
         // Get the project ID from the player prefs
-        //int projectID = PlayerPrefs.GetInt("ProjectID", 0);
-        int projectID = 2;
+        int projectID = PlayerPrefs.GetInt("ProjectID", 0);
         string apiURL = "https://popar-backend.acstech.vn/api/v3/project/" + projectID;
         Debug.Log("API URL: " + apiURL);
         UnityWebRequest request = UnityWebRequest.Get(apiURL);
@@ -106,7 +112,7 @@ public class CMSImportAssets : MonoBehaviour
             ResponseData responseData = JsonUtility.FromJson<ResponseData>(request.downloadHandler.text);
             // Save the data
             SaveData(responseData.data, projectID);
-            int counter = 1;
+            int counter = 0;
             foreach (Experience experience in responseData.data.experiences)
             {
                 string bundleLink;
@@ -130,8 +136,7 @@ public class CMSImportAssets : MonoBehaviour
                 StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, counter.ToString(), projectID));
                 StartCoroutine(DownloadAndCacheImage(markerLink, counter.ToString() + ".png", projectID, experience.x_tracking));
 
-                // StartCoroutine(DownloadAndCacheAssetBundle(bundleLink, filename));
-                // StartCoroutine(DownloadAndCacheImage(markerLink, imagename));
+                experienceDictionary.Add(counter.ToString(), experience);
 
                 counter++;
             }
@@ -145,10 +150,9 @@ public class CMSImportAssets : MonoBehaviour
         string jsonData = JsonUtility.ToJson(projectData);
 
         // Save the JSON string to a file
-        string tempPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
-        string tempPath2 = Path.Combine(tempPath1, projectID.ToString());
-        Directory.CreateDirectory(tempPath2);
-        string fullPath = Path.Combine(tempPath2, "Data.json");
+        string tempPath = Path.Combine(Application.persistentDataPath, "ProjectAssets", projectID.ToString());
+        Directory.CreateDirectory(tempPath);
+        string fullPath = Path.Combine(tempPath, "Data.json");
         File.WriteAllText(fullPath, jsonData);
     }
 
@@ -157,18 +161,17 @@ public class CMSImportAssets : MonoBehaviour
         // Replace 'http' with 'https' in the URL
         url = url.Replace("http://", "https://");
 
-        string folderPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
-        string folderPath2 = Path.Combine(folderPath1, projectID.ToString());
-        string localPath = Path.Combine(folderPath2, fileName);
-        Directory.CreateDirectory(folderPath2);
+        string folderPath = Path.Combine(Application.persistentDataPath, "ProjectAssets", projectID.ToString());
+        string localPath = Path.Combine(folderPath, fileName);
+        Directory.CreateDirectory(folderPath);
 
         if (File.Exists(localPath) && !redownloadAssets)
         {
             Debug.Log("Loading file from cache: " + localPath);
 
             // Load and process AssetBundle
-            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(localPath); // Load the AssetBundle asynchronously
-            yield return request; // Wait for the request to finish
+            AssetBundleCreateRequest request = AssetBundle.LoadFromFileAsync(localPath);
+            yield return request;
 
             if (request.assetBundle == null)
             {
@@ -176,7 +179,7 @@ public class CMSImportAssets : MonoBehaviour
             }
             else
             {
-                AddAssetsToPlaceARObject(request.assetBundle, fileName); // Add the assets to the place AR object
+                AddAssetsToPlaceARObject(request.assetBundle, fileName);
             }
         }
         else
@@ -202,13 +205,11 @@ public class CMSImportAssets : MonoBehaviour
 
     IEnumerator DownloadAndCacheImage(string url, string fileName, int projectID, float x_tracking)
     {
-        // Replace 'http' with 'https' in the URL
         url = url.Replace("http://", "https://");
 
-        string folderPath1 = Path.Combine(Application.persistentDataPath, "ProjectAssets");
-        string folderPath2 = Path.Combine(folderPath1, projectID.ToString());
-        string localPath = Path.Combine(folderPath2, fileName);
-        Directory.CreateDirectory(folderPath2);
+        string folderPath = Path.Combine(Application.persistentDataPath, "ProjectAssets", projectID.ToString());
+        string localPath = Path.Combine(folderPath, fileName);
+        Directory.CreateDirectory(folderPath);
 
         if (File.Exists(localPath) && !redownloadAssets)
         {
