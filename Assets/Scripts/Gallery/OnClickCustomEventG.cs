@@ -1,21 +1,17 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-public class OnClickCustomEvent : MonoBehaviour
+public class OnClickCustomEventG : MonoBehaviour
 {
     [SerializeField]
-    private TextMeshProUGUI imageTitle;
-    [SerializeField]
     private GameObject infoPanel;
-    [SerializeField]
-    private GameObject infoPanelBackButton;
 
-    public void GalleryOnClick()
+    public void HomeOnClick()
     {
-        Debug.Log("Gallery button clicked");
+        Debug.Log("Home button clicked");
+        SceneManager.LoadScene("ProjectSelection");
     }
 
     public void InfoOnClick()
@@ -25,17 +21,16 @@ public class OnClickCustomEvent : MonoBehaviour
         StartCoroutine(HandleBackButton());
     }
 
-    public void ImageOnClick()
-    {
-        Debug.Log("Image button clicked. Loading project: " + imageTitle.text);
-        PlayerPrefs.SetInt("ProjectID", PlayerPrefs.GetInt(imageTitle.text, 0));
-        SceneManager.LoadScene("GeneralARProject");
-    }
-
     public void InfoPanelBackButtonOnClick()
     {
         Debug.Log("Info panel back button clicked");
         infoPanel.SetActive(false);
+    }
+
+    public void GalleryBackButtonOnClick()
+    {
+        Debug.Log("Gallery back button clicked");
+        SceneManager.LoadScene("ProjectSelection");
     }
 
     IEnumerator HandleBackButton()

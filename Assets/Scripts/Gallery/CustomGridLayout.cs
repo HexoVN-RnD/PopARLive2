@@ -29,6 +29,10 @@ public class ReadOnlyDrawer : PropertyDrawer
 }
 #endif
 
+#if !UNITY_EDITOR
+public class ReadOnlyAttribute : Attribute { }
+#endif
+
 public class CustomGridLayout : MonoBehaviour
 {
     [SerializeField]
@@ -107,7 +111,6 @@ public class CustomGridLayout : MonoBehaviour
             {
                 Debug.LogError($"Position not found for image ID {imageId}");
             }
-
             counter++;
         }
 

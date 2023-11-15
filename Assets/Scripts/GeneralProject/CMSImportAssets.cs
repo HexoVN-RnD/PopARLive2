@@ -130,9 +130,11 @@ public class CMSImportAssets : MonoBehaviour
         CMSImportAssets.experienceDictionary.Clear();
         CMSImportAssets.prefabDictionary.Clear();
 
+        #if !UNITY_EDITOR
         trackedImageManager.enabled = false;
         trackedImageManager.referenceLibrary = trackedImageManager.CreateRuntimeLibrary(imageLibrary);
         trackedImageManager.enabled = true;
+        #endif
 
         // Get the project ID from the player prefs
         int projectID = PlayerPrefs.GetInt("ProjectID", 0);

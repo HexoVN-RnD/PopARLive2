@@ -17,6 +17,7 @@ public class CMSFeedLoad : MonoBehaviour
     public delegate void LoadHandler();
     public static event LoadHandler OnLoadCompleted;
     public Dictionary<int, string> gridTypes = new Dictionary<int, string>();
+    [System.NonSerialized]
     public List<int> imageIDs = new List<int>();
 
     private void OnEnable()
@@ -157,50 +158,4 @@ public class CMSFeedLoad : MonoBehaviour
         Debug.Log("Finished displaying images");
         OnLoadCompleted?.Invoke();
     }
-
-    // public void DisplayImages()
-    // {
-    //     Debug.Log("Displaying images...");
-
-    //     Data[] data = LoadData();
-    //     foreach (var item in data)
-    //     {
-    //         if (!(item.media_type == "Image" || IsSupportedImageExtension(item.media)))
-    //         {
-    //             Debug.Log("Skipping item with ID: " + item.id);
-    //             continue;
-    //         }
-
-    //         Debug.Log("Displaying image with ID: " + item.id);
-
-    //         // Instantiate the prefab and get the Image and Text components
-    //         GameObject imageObject = Instantiate(imagePrefab, parentTransform);
-    //         Image imageComponent = imageObject.GetComponentInChildren<Image>();
-    //         TMP_Text[] textComponents = imageObject.GetComponentsInChildren<TMP_Text>();
-    //         AspectRatioFitter aspectRatioFitter = imageComponent.GetComponent<AspectRatioFitter>();
-
-    //         // Load the image
-    //         string imagePath = Path.Combine(Application.persistentDataPath, "Feed", item.media.Split('=')[1].Split('?')[0]);
-    //         Texture2D texture = LoadImage(imagePath);
-
-    //         // Convert the Texture2D to a Sprite
-    //         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-
-    //         // Display the image and information
-    //         imageComponent.sprite = sprite;
-    //         imageComponent.preserveAspect = true; // Ensure this is checked
-    //         textComponents[0].text = item.caption;
-    //         // Parse the date string and format it to display only the month and year
-    //         System.DateTime createdAt = System.DateTime.Parse(item.createdAt);
-    //         textComponents[1].text = createdAt.ToString("MMMM yyyy");
-
-    //         // Set the aspect ratio
-    //         aspectRatioFitter.aspectRatio = (float)texture.width / texture.height;
-    //         aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent; // Or AspectMode.EnvelopeParent
-
-    //         Debug.Log("Displayed image with ID: " + item.id);
-    //     }
-
-    //     Debug.Log("Finished displaying images");
-    // }
 }
