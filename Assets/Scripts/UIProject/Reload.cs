@@ -8,13 +8,16 @@ public class Reload : MonoBehaviour
 {
     public void OnClickReload()
     {
-        ARSession arSession = FindObjectOfType<ARSession>();
-        if (arSession != null)
-        {
-            arSession.Reset();
-            Debug.Log("ARSession reset");
-        }
+        // ARSession arSession = FindObjectOfType<ARSession>();
+        // if (arSession != null)
+        // {
+        //     arSession.Reset();
+        //     Debug.Log("ARSession reset");
+        // }
+        // var xrManagerSettings = UnityEngine.XR.Management.XRGeneralSettings.Instance.Manager;
+        // xrManagerSettings.DeinitializeLoader();
         Scene currentScene = SceneManager.GetActiveScene();
-        SceneManager.LoadScene(currentScene.name);
+        SceneManager.LoadScene(currentScene.name, LoadSceneMode.Single);
+        // xrManagerSettings.InitializeLoaderSync();
     }
 }

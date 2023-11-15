@@ -5,15 +5,28 @@ using SimpleJSON;
 using static CMSFeedImport;
 using TMPro;
 using System.Linq;
+using System.Collections.Generic;
 
 public class CMSFeedLoad : MonoBehaviour
 {
-    public GameObject imagePrefab;
-    public Transform parentTransform;
+    [SerializeField]
+    private GameObject imagePrefab;
+    [SerializeField]
+    private Transform parentTransform;
 
-    private void Start()
+    public delegate void LoadHandler();
+    public static event LoadHandler OnLoadCompleted;
+    public Dictionary<int, string> gridTypes = new Dictionary<int, string>();
+    public List<int> imageIDs = new List<int>();
+
+    private void OnEnable()
     {
-        DisplayImages();
+        CMSFeedImport.OnImportCompleted += DisplayImages;
+    }
+
+    private void OnDestroy()
+    {
+        CMSFeedImport.OnImportCompleted -= DisplayImages;
     }
 
     public Data[] LoadData()
@@ -112,14 +125,37 @@ public class CMSFeedLoad : MonoBehaviour
             aspectRatioFitter.aspectRatio = (float)texture.width / texture.height;
             aspectRatioFitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent; // Or AspectMode.EnvelopeParent
 
-            Debug.Log("Displayed image with ID: " + item.id);
+            Debug.Log("Displayed image with ID: " + item.id + " and Grid Type: " + item.grid_type);
 
             // // Add the item to the custom grid layout
             // RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
             // GetComponent<CustomGridLayout>().AddItem(rectTransform, item.grid_type);
+            if (!imageIDs.Contains(item.id))
+            {
+                imageIDs.Add(item.id);
+            }
+            else
+            {
+                Debug.Log("ID already exists in the list: " + item.id);
+            }
+
+            if (!gridTypes.ContainsKey(item.id))
+            {
+                gridTypes.Add(item.id, item.grid_type);
+            }
+            else
+            {
+                Debug.Log("ID already exists in the dictionary: " + item.id);
+            }
         }
+        // foreach (var pair in gridTypes)
+        // {
+        //     Debug.Log("ID: " + pair.Key);
+        //     Debug.Log("Grid Type: " + pair.Value);
+        // }
 
         Debug.Log("Finished displaying images");
+        OnLoadCompleted?.Invoke();
     }
 
     // public void DisplayImages()

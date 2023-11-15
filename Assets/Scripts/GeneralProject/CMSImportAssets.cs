@@ -17,7 +17,11 @@ public class CMSImportAssets : MonoBehaviour
     public static event DataDownloadEndHandler OnDataDownloadEnd;
 
     [SerializeField]
+    XRReferenceImageLibrary imageLibrary = null;
+    [SerializeField]
     private PlaceAssets placeARObject;
+    [SerializeField]
+    private ARTrackedImageManager trackedImageManager;
     [SerializeField]
     private bool redownloadAssets = true;
     public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
@@ -42,6 +46,14 @@ public class CMSImportAssets : MonoBehaviour
         public string hash_tag;
         public Schedule schedule;
         public Experience[] experiences;
+        public TutorialMessage[] tutorial_message;
+        public int order;
+        public bool status;
+        public string watermark;
+        public bool? show_watermark;
+        public string createDate;
+        public string createdAt;
+        public string updatedAt;
     }
 
     [Serializable]
@@ -82,6 +94,30 @@ public class CMSImportAssets : MonoBehaviour
     [Serializable]
     public class Item
     {
+        public int id;
+        public string end_time;
+        public string start_time;
+    }
+
+    [Serializable]
+    public class TutorialMessage
+    {
+        public int id;
+        public string name;
+        public MessageItem[] items;
+    }
+
+    [Serializable]
+    public class MessageItem
+    {
+        public int id;
+        public string message_text;
+        public string text_color;
+        public string bg_color;
+        public int size;
+        public string style;
+        public string screen_position;
+        public string tutorial_message;
     }
 
     IEnumerator Start()
@@ -93,7 +129,11 @@ public class CMSImportAssets : MonoBehaviour
         }
         CMSImportAssets.experienceDictionary.Clear();
         CMSImportAssets.prefabDictionary.Clear();
-        
+
+        trackedImageManager.enabled = false;
+        trackedImageManager.referenceLibrary = trackedImageManager.CreateRuntimeLibrary(imageLibrary);
+        trackedImageManager.enabled = true;
+
         // Get the project ID from the player prefs
         int projectID = PlayerPrefs.GetInt("ProjectID", 0);
         string apiURL = "https://popar-backend.acstech.vn/api/v3/project/" + projectID;
@@ -269,8 +309,7 @@ public class CMSImportAssets : MonoBehaviour
     {
 #if !UNITY_EDITOR
         // Get the reference image library
-        var imageManager = GetComponent<ARTrackedImageManager>();
-        var mutableLibrary = imageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
+        var mutableLibrary = trackedImageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
 
         // Add the image to the library
         mutableLibrary.ScheduleAddImageWithValidationJob(image, name, x_tracking, default);

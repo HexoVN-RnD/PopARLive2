@@ -13,7 +13,7 @@ public class PlaceAssets : MonoBehaviour
     private List<Texture2D> ArImages;
 
     [SerializeField]
-    private ARTrackedImageManager m_TrackedImageManager;
+    private ARTrackedImageManager trackedImageManager;
 
     [SerializeField]
     private static PlaceAssets Instance;
@@ -37,9 +37,9 @@ public class PlaceAssets : MonoBehaviour
 
     IEnumerator Start()
     {
-        yield return new WaitForSeconds(0.5f);  // Wait for ARSession to initialize
+        yield return new WaitForSeconds(2f);  // Wait for ARSession to initialize
 
-        var mutableLibrary = m_TrackedImageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
+        var mutableLibrary = trackedImageManager.referenceLibrary as MutableRuntimeReferenceImageLibrary;
 
         foreach (var texture in ArImages)
         {
@@ -47,7 +47,7 @@ public class PlaceAssets : MonoBehaviour
             var jobHandle = mutableLibrary.ScheduleAddImageWithValidationJob(texture, texture.name, 0.1f, default);
             yield return jobHandle;
         }
-        m_TrackedImageManager.trackedImagesChanged += OnTrackedImagesChanged;
+        trackedImageManager.trackedImagesChanged += OnTrackedImagesChanged;
     }
 
     private void OnTrackedImagesChanged(ARTrackedImagesChangedEventArgs eventArgs)
@@ -64,15 +64,8 @@ public class PlaceAssets : MonoBehaviour
                     Debug.LogError("Prefab for key: " + key + " is null");
                     continue;
                 }
-                //GameObject instance = Instantiate(prefab, trackedImage.transform.position, Quaternion.identity);
-                GameObject instance = Instantiate(prefab, trackedImage.transform.position, prefab.transform.rotation);
-                instance.transform.parent = trackedImage.transform;
-                instance.SetActive(true);
-                Debug.Log("Scaling up: " + key);
 
-                StartCoroutine(ScaleUp(instance, key));
-
-                _instantiatedPrefabs.Add(key, instance);
+                StartCoroutine(InitializeWithDelayAndDateCheck(prefab, key, trackedImage.transform.position));
             }
         }
 
@@ -86,6 +79,7 @@ public class PlaceAssets : MonoBehaviour
                 if (trackedImage.trackingState == TrackingState.Tracking)
                 {
                     _instantiatedPrefabs[key].transform.position = trackedImage.transform.position;
+                    _instantiatedPrefabs[key].transform.rotation = trackedImage.transform.rotation;
                 }
             }
         }
@@ -99,19 +93,50 @@ public class PlaceAssets : MonoBehaviour
         // }
     }
 
-    IEnumerator ScaleUp(GameObject instance, string key)
+    IEnumerator InitializeWithDelayAndDateCheck(GameObject prefab, string key, Vector3 trackedImagePosition)
     {
-        yield return new WaitForSeconds(1);
-        // Get the corresponding Experience object
-        Debug.Log(instance.name + " key " + key);
         Experience experience = CMSImportAssets.experienceDictionary.ContainsKey(key) ? CMSImportAssets.experienceDictionary[key] : null;
-        // Use the fade_in value as the duration
-        float duration = experience != null ? experience.fade_in : 3.0f;
+        // Get the current date and time
+        DateTime now = DateTime.Now;
+
+        // Define the start and end dates for the spawning of the AR objects
+        DateTime startDate = new DateTime(now.Year, 10, 10, 9, 0, 0); // 9 AM on October 10
+        DateTime endDate = new DateTime(now.Year, 10, 11, 21, 0, 0); // 9 PM on October 11
+
+        // Check if the current date and time is within the specified range
+        if (now >= startDate && now <= endDate)
+        {
+            float fade_in = experience != null ? experience.fade_in : 3.0f; yield return new WaitForSeconds(fade_in);
+
+            yield return new WaitForSeconds(fade_in);
+
+            GameObject instance = Instantiate(prefab);
+            instance.transform.position = trackedImagePosition;
+
+            Debug.Log("Scaling up: " + key);
+
+            StartCoroutine(ScaleUp(instance, experience));
+
+            _instantiatedPrefabs.Add(key, instance);
+        }
+        else
+        {
+            Debug.Log("AR objects can only spawn between 9 AM on October 10 and 9 PM on October 11.");
+        }
+    }
+
+    IEnumerator ScaleUp(GameObject instance, Experience experience)
+    {
+        // Get the corresponding Experience object
+        float duration = 1f;
+        float fade_in = experience != null ? experience.fade_in : 3.0f;
+
         // Use the scale value as the maximum scale
-        Vector3 maxScale = experience != null ? new Vector3(experience.scale/100, experience.scale/100, experience.scale/100) : Vector3.one;
+        Vector3 maxScale = experience != null ? new Vector3(experience.scale / 100, experience.scale / 100, experience.scale / 100) : Vector3.one;
         Debug.Log("Scaling up for " + duration + " seconds" + " to " + maxScale);
         float elapsedTime = 0;
 
+        // Scale up
         while (elapsedTime < duration)
         {
             instance.transform.localScale = Vector3.Lerp(Vector3.zero, maxScale, (elapsedTime / duration));

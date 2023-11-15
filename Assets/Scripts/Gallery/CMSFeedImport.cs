@@ -7,7 +7,11 @@ using UnityEngine.Networking;
 
 public class CMSFeedImport : MonoBehaviour
 {
-    public bool alwaysDownload; // Set this to true if you want to always download the image
+    public delegate void ImportHandler();
+    public static event ImportHandler OnImportCompleted;
+
+    [SerializeField]
+    private bool alwaysDownload; // Set to true to always download the files, even if they already exist
 
     private string apiLink = "https://popar-backend.acstech.vn/api/v3/feed?pageNo=0&pageSize=1000";
 
@@ -78,7 +82,7 @@ public class CMSFeedImport : MonoBehaviour
                     if (alwaysDownload || !File.Exists(filePath) || localUpdateTime < serverUpdateTime)
                     {
                         Debug.Log("File does not exist or has been updated. Starting download...");
-                        StartCoroutine(DownloadFile(secureUrl, fileName));
+                        yield return StartCoroutine(DownloadFile(secureUrl, fileName));
                     }
                     else
                     {
@@ -92,6 +96,8 @@ public class CMSFeedImport : MonoBehaviour
             }
             // Save the data
             SaveData(dataList.ToArray());
+
+            OnImportCompleted?.Invoke();
         }
         else
         {
