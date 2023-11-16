@@ -170,6 +170,7 @@ public class CMSFeedLoad : MonoBehaviour
         videoPlayer.Stop();
         Destroy(videoPlayer);
         Destroy(renderTexture);
+        Destroy(videoPlayerGameObject);
     }
 
 

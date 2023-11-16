@@ -1270,7 +1270,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cmsFeedLoad: {fileID: 1389432761}
-  columnCount: 4
+  columnCount: 2
   cellSize: 100
   spacing: 20
 --- !u!1 &1374651616
@@ -1412,7 +1412,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   imagePrefab: {fileID: 6241092211569919988, guid: 6b20df8d84e23ce4d84ef4b5d23f50c9,
     type: 3}
-  videoThumbnailPrefab: {fileID: 6241092211569919988, guid: 6b20df8d84e23ce4d84ef4b5d23f50c9,
+  videoThumbnailPrefab: {fileID: 8588864963016366126, guid: 6ce437161be2dfe409748d5663175bc1,
     type: 3}
   parentTransform: {fileID: 1366528908}
 --- !u!114 &1389432762

@@ -31,9 +31,9 @@ public class CustomGridLayout : MonoBehaviour
     private CMSFeedLoad cmsFeedLoad;
     [SerializeField]
     private int columnCount = 4;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     [SerializeField, ReadOnly]
-    #endif
+#endif
     private float cellSize;
     [SerializeField]
     private float spacing = 10f;
@@ -64,17 +64,31 @@ public class CustomGridLayout : MonoBehaviour
 
         Dictionary<int, int> imageDesignatedPosition = PositionMatrix.Main(columnCount, tupleGridTypes);
 
-        //Log the image position
+        // set parent height based on the maximum height of the last row's images
+        int maxImageHeight = 0;
+        int currentRow = -1;
         foreach (var pair in imageDesignatedPosition)
         {
             Debug.Log("Image " + pair.Key + " is at position " + pair.Value);
+            int row = (pair.Value - 1) / columnCount;
+            if (row != currentRow)
+            {
+                currentRow = row;
+                maxImageHeight = 0;
+            }
+            int imageHeight = tupleGridTypes[pair.Key].Item2;
+            if (imageHeight > maxImageHeight)
+            {
+                maxImageHeight = imageHeight;
+            }
         }
+        GetComponent<RectTransform>().sizeDelta = new Vector2(GetComponent<RectTransform>().sizeDelta.x, (currentRow + maxImageHeight) * (cellSize + spacing) + spacing);
 
         //Grab all children gameobjects
         List<GameObject> children = new List<GameObject>();
         int counter = 0;
         foreach (Transform child in transform)
-        {   
+        {
             //set anchor to top left
             children.Add(child.gameObject);
             child.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
@@ -106,20 +120,6 @@ public class CustomGridLayout : MonoBehaviour
                 Debug.LogError($"Position not found for image ID {imageId}");
             }
             counter++;
-        }
-
-        //set parent height based on the last child's position
-        int lastImageId = imageIDs[imageIDs.Count - 1];
-        if (imageDesignatedPosition.TryGetValue(lastImageId, out var lastPosition))
-        {
-            int lastRow = (lastPosition - 1) / columnCount;
-            //int lastCol = (lastPosition - 1) % columnCount;
-            int lastImageHeight = tupleGridTypes[lastImageId].Item2;
-            GetComponent<RectTransform>().sizeDelta = new Vector2(GetComponent<RectTransform>().sizeDelta.x, (lastRow + lastImageHeight) * (cellSize + spacing) + spacing);
-        }
-        else
-        {
-            Debug.LogError($"Position not found for image ID {lastImageId}");
         }
     }
 }
