@@ -1412,6 +1412,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   imagePrefab: {fileID: 6241092211569919988, guid: 6b20df8d84e23ce4d84ef4b5d23f50c9,
     type: 3}
+  videoThumbnailPrefab: {fileID: 6241092211569919988, guid: 6b20df8d84e23ce4d84ef4b5d23f50c9,
+    type: 3}
   parentTransform: {fileID: 1366528908}
 --- !u!114 &1389432762
 MonoBehaviour:

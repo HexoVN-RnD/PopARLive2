@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -117,7 +113,7 @@ public class CustomGridLayout : MonoBehaviour
         if (imageDesignatedPosition.TryGetValue(lastImageId, out var lastPosition))
         {
             int lastRow = (lastPosition - 1) / columnCount;
-            int lastCol = (lastPosition - 1) % columnCount;
+            //int lastCol = (lastPosition - 1) % columnCount;
             int lastImageHeight = tupleGridTypes[lastImageId].Item2;
             GetComponent<RectTransform>().sizeDelta = new Vector2(GetComponent<RectTransform>().sizeDelta.x, (lastRow + lastImageHeight) * (cellSize + spacing) + spacing);
         }
