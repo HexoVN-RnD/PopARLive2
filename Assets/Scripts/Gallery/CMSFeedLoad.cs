@@ -20,9 +20,26 @@ public class CMSFeedLoad : MonoBehaviour
     [System.NonSerialized]
     public List<int> imageIDs = new List<int>();
 
+    private void Start()
+    {
+        // Get a reference to the other script
+        CMSFeedImport otherScript = GetComponent<CMSFeedImport>();
+
+        // Check if the other script is enabled
+        if (otherScript == null || !otherScript.enabled)
+        {
+            DisplayImages();
+        }
+    }
+
     private void OnEnable()
     {
-        CMSFeedImport.OnImportCompleted += DisplayImages;
+        // Only subscribe to the event if the other script is enabled
+        CMSFeedImport importScript = GetComponent<CMSFeedImport>();
+        if (importScript != null && importScript.enabled)
+        {
+            CMSFeedImport.OnImportCompleted += DisplayImages;
+        }
     }
 
     private void OnDestroy()

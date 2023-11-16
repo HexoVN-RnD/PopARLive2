@@ -29,17 +29,15 @@ public class ReadOnlyDrawer : PropertyDrawer
 }
 #endif
 
-#if !UNITY_EDITOR
-public class ReadOnlyAttribute : Attribute { }
-#endif
-
 public class CustomGridLayout : MonoBehaviour
 {
     [SerializeField]
     private CMSFeedLoad cmsFeedLoad;
     [SerializeField]
     private int columnCount = 4;
+    #if UNITY_EDITOR
     [SerializeField, ReadOnly]
+    #endif
     private float cellSize;
     [SerializeField]
     private float spacing = 10f;
@@ -114,6 +112,18 @@ public class CustomGridLayout : MonoBehaviour
             counter++;
         }
 
-
+        //set parent height based on the last child's position
+        int lastImageId = imageIDs[imageIDs.Count - 1];
+        if (imageDesignatedPosition.TryGetValue(lastImageId, out var lastPosition))
+        {
+            int lastRow = (lastPosition - 1) / columnCount;
+            int lastCol = (lastPosition - 1) % columnCount;
+            int lastImageHeight = tupleGridTypes[lastImageId].Item2;
+            GetComponent<RectTransform>().sizeDelta = new Vector2(GetComponent<RectTransform>().sizeDelta.x, (lastRow + lastImageHeight) * (cellSize + spacing) + spacing);
+        }
+        else
+        {
+            Debug.LogError($"Position not found for image ID {lastImageId}");
+        }
     }
 }

@@ -17,8 +17,6 @@ public class CMSImportAssets : MonoBehaviour
     public static event DataDownloadEndHandler OnDataDownloadEnd;
 
     [SerializeField]
-    XRReferenceImageLibrary imageLibrary = null;
-    [SerializeField]
     private PlaceAssets placeARObject;
     [SerializeField]
     private ARTrackedImageManager trackedImageManager;
