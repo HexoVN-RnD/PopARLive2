@@ -251,6 +251,7 @@ GameObject:
   - component: {fileID: 1222037877151871607}
   - component: {fileID: 8666057922278735885}
   - component: {fileID: 4669257808439852376}
+  - component: {fileID: 6340586415350636795}
   m_Layer: 0
   m_Name: VideoThumbnailPrefab
   m_TagString: Untagged
@@ -302,3 +303,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Padding: {x: 0, y: 0, z: 0, w: 0}
   m_Softness: {x: 0, y: 0}
+--- !u!114 &6340586415350636795
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8588864963016366126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0812b960afa8b24f9c1f0505dd9486f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

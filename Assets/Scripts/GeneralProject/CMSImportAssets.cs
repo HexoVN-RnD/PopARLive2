@@ -22,6 +22,7 @@ public class CMSImportAssets : MonoBehaviour
     private ARTrackedImageManager trackedImageManager;
     [SerializeField]
     private bool redownloadAssets = true;
+    private XRReferenceImageLibrary imageLibrary = null;
     public static Dictionary<string, GameObject> prefabDictionary = new Dictionary<string, GameObject>();
     public static Dictionary<string, Experience> experienceDictionary = new Dictionary<string, Experience>();
 
@@ -128,11 +129,11 @@ public class CMSImportAssets : MonoBehaviour
         CMSImportAssets.experienceDictionary.Clear();
         CMSImportAssets.prefabDictionary.Clear();
 
-        #if !UNITY_EDITOR
+#if !UNITY_EDITOR
         trackedImageManager.enabled = false;
         trackedImageManager.referenceLibrary = trackedImageManager.CreateRuntimeLibrary(imageLibrary);
         trackedImageManager.enabled = true;
-        #endif
+#endif
 
         // Get the project ID from the player prefs
         int projectID = PlayerPrefs.GetInt("ProjectID", 0);
