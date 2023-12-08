@@ -95,16 +95,16 @@ public class PlaceAssets : MonoBehaviour
     IEnumerator InitializeWithDelayAndDateCheck(GameObject prefab, string key, Vector3 trackedImagePosition)
     {
         Experience experience = CMSImportAssets.experienceDictionary.ContainsKey(key) ? CMSImportAssets.experienceDictionary[key] : null;
-        // Get the current date and time
-        DateTime now = DateTime.Now;
+        // // Get the current date and time
+        // DateTime now = DateTime.Now;
 
-        // Define the start and end dates for the spawning of the AR objects
-        DateTime startDate = new DateTime(now.Year, 10, 10, 9, 0, 0); // 9 AM on October 10
-        DateTime endDate = new DateTime(now.Year, 10, 11, 21, 0, 0); // 9 PM on October 11
+        // // Define the start and end dates for the spawning of the AR objects
+        // DateTime startDate = new DateTime(now.Year, 10, 10, 9, 0, 0); // 9 AM on October 10
+        // DateTime endDate = new DateTime(now.Year, 10, 11, 21, 0, 0); // 9 PM on October 11
 
-        // Check if the current date and time is within the specified range
-        if (now >= startDate && now <= endDate)
-        {
+        // // Check if the current date and time is within the specified range
+        // if (now >= startDate && now <= endDate)
+        // {
             float fade_in = experience != null ? experience.fade_in : 3.0f; yield return new WaitForSeconds(fade_in);
 
             yield return new WaitForSeconds(fade_in);
@@ -117,11 +117,11 @@ public class PlaceAssets : MonoBehaviour
             StartCoroutine(ScaleUp(instance, experience));
 
             _instantiatedPrefabs.Add(key, instance);
-        }
-        else
-        {
-            Debug.Log("AR objects can only spawn between 9 AM on October 10 and 9 PM on October 11.");
-        }
+        // }
+        // else
+        // {
+        //     Debug.Log("AR objects can only spawn between 9 AM on October 10 and 9 PM on October 11.");
+        // }
     }
 
     IEnumerator ScaleUp(GameObject instance, Experience experience)
